@@ -1,52 +1,71 @@
 <template>
-  <div id="dropzone">
-    <input type="file" accept="application/pdf"/>
-    <div class="center">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#d6d6d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="picto"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+  <div id="dropzone" ref="dropzone"  @dragover="hoverIn" @dragleave="hoverOut" @drop="drop">
+    <input type="file" accept="application/pdf" ref="input"  @change="submit"/>
+  <!--   <svg class="lottie center" ref="lottie"></svg> -->
+    <svg width="24" height="24"  xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" stroke="#57b883" clip-rule="evenodd" class="checked hidden" ref="done"><path d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm7 7.457l-9.005 9.565-4.995-5.865.761-.649 4.271 5.016 8.24-8.752.728.685z"/></svg>
+    <div class="center" ref="hint">
+      <svg  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#d6d6d6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="picto"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
       <p>Drop a file here to upload</p>
     </div>
-    <div class="center hidden"></div>
+    <div class="center hidden" ref="filename"></div>
   </div>
+
 </template>
 
 <script>
-export default {
+  // import lottie from 'lottie-web'
+  // import checkedAnim from '@/assets/check_animation.json'
+  export default {
     name: "Dropzone",
     // props: {
     //     msg: String
     // }
-    mounted: function initDropzone() {
-      const dropzone = document.getElementById("dropzone");
-      const input = document.querySelector("#dropzone input");
-      const hint = document.querySelector("#dropzone .center");
-      const filename = document.querySelector("div.center");
-
-      dropzone.addEventListener('dragover', function(){
+    // data () {
+    //   return {
+    //     checked: null
+    //   }
+    // },
+    methods: {
+      hoverIn: function() {
         dropzone.classList.add("hover");
-      });
-
-      dropzone.addEventListener('dragleave', function(){
+      },
+      hoverOut: function() {
         dropzone.classList.remove("hover");
-      });
-
-      //reset input in case of same file added
-      input.addEventListener('drop', function(){
+      },
+      drop: function() {
         dropzone.classList.remove("hover");
-      });
-
-      input.addEventListener('change', function(){
-        const file = this.files[0];
+      },
+      submit: function() {
+        const file = this.$refs.input.files[0];
         // validate input file
-        if (this.accept && this.accept.includes(file.type) == false) {
+        if (this.$refs.input.accept && this.$refs.input.accept.includes(file.type) == false) {
           return alert('File type not allowed.');
         }
-        hint.classList.add("hidden");
+        this.$refs.hint.classList.add("hidden");
         // display file name
-        filename.innerHTML = `File: ${/[^\\]*$/.exec(this.value)[0]}`;
-        filename.classList.remove("hidden");
-        });
+        this.$refs.filename.innerHTML = `File: ${/[^\\]*$/.exec(this.$refs.input.value)[0]}`;
+        this.$refs.filename.classList.remove("hidden");
+         // kickoff upload
+        fetch('https://fhirtest.uhn.ca/baseDstu3/Binary', { method: 'POST', body: file })
+        .then(response => {
+          console.log(response)
+          if(response.status == 201) {
+            this.$refs.done.classList.remove("hidden");
+          }
+        })
+      }
+    },
+    mounted() {
+    //   this.checked = lottie.loadAnimation(
+    //   {
+    //     container: this.$refs.lottie,
+    //     renderer: 'svg',
+    //     loop: false,
+    //     autoplay: true,
+    //     annimationData: checkedAnim
+    //   });
     }
-};
+  };
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
@@ -56,9 +75,9 @@ export default {
     font-family: 'Open Sans', sans-serif;
     color: #d6d6d6;
     height: 200px;
+    width: 300px;
     margin: 30px auto;
     text-align: center;
-    width: 300px;
   }
 
   #dropzone.hover {
@@ -91,4 +110,17 @@ export default {
   .hidden {
     display: none;
   }
+
+/*  .lottie {
+    width:100px;
+    height:100px;
+  }*/
+
+  .checked {
+    position: absolute;
+    top: 20%;
+    left:50%;
+    transform: translateX(-50%);
+  }
+
 </style>
