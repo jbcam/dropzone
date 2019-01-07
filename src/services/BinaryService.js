@@ -12,10 +12,10 @@ export default class BinaryService {
     }
 
     findTotal() {
-      return fetch(`${this.baseUrl}?_summary=count`)
-      .then(response => response.json())
-      .then((data) => {
-          return data.total;
-      })
+        return fetch(`${this.baseUrl}?_summary=count`)
+            .then(response => response.json())
+            .then((data) => {
+                return data.total;
+            })
     }
 }
